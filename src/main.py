@@ -18,11 +18,6 @@ motorL2 = Motor(Ports.PORT2, True)
 motorR1 = Motor(Ports.PORT10, False)
 motorR2 = Motor(Ports.PORT9, False)
 
-intakeMotor = Motor(Ports.PORT11, True)
-
-intakeMotor.set_velocity(60, PERCENT)
-intakeMotor.set_max_torque(100, PERCENT)
-
 vision__RED_BALL = Signature(1, 10333, 15491, 12912,-1401, -947, -1174,3.9, 0)
 vision__BLUE_BALL = Signature(2, -4779, -4069, -4424,6677, 7949, 7313,7, 0)
 vision = Vision(Ports.PORT12, 50, vision__RED_BALL, vision__BLUE_BALL)
@@ -30,11 +25,23 @@ vision = Vision(Ports.PORT12, 50, vision__RED_BALL, vision__BLUE_BALL)
 filterMotor = Motor(Ports.PORT13, True)
 filterMotor.set_velocity(100, PERCENT)
 
-conveyorMotor = Motor(Ports.PORT14)
-conveyorMotor.set_velocity(50, PERCENT)
+conveyorGroup = MotorGroup(Motor(Ports.PORT14), Motor(Ports.PORT15))
+conveyorGroup.set_velocity(80, PERCENT)
 
 MODE_RED = 0
 MODE_BLUE = 1
+
+inertial = Inertial(Ports.PORT20)
+drivetrain = SmartDrive(
+    MotorGroup(motorL1, motorL2),
+    MotorGroup(motorR1, motorR2),
+    inertial,
+    220,
+    307.975,
+    257.175,
+    DistanceUnits.MM,
+    4/3
+)
 
 def dampPercent(percent):
     return 10 * math.sqrt(percent)
@@ -59,31 +66,27 @@ def rightStickChanged():
 
     print("Right torque: " + str(motorR1.torque()) + " NM")
 
-intakeState = 0
+conveyorState = 0
 
 def buttonL1Down():
-    global intakeState
+    global conveyorState
 
-    if intakeState != 1:
-        intakeMotor.spin(FORWARD)
-        conveyorMotor.spin(FORWARD)
-        intakeState = 1
+    if conveyorState != 1:
+        conveyorGroup.spin(FORWARD)
+        conveyorState = 1
     else:
-        intakeMotor.stop()
-        conveyorMotor.stop()
-        intakeState = 0
+        conveyorGroup.stop()
+        conveyorState = 0
     
 def buttonL2Down():
-    global intakeState
+    global conveyorState
 
-    if intakeState != 2:
-        intakeMotor.spin(REVERSE)
-        conveyorMotor.spin(REVERSE)
-        intakeState = 2
+    if conveyorState != 2:
+        conveyorGroup.spin(REVERSE)
+        conveyorState = 2
     else:
-        intakeMotor.stop()
-        conveyorMotor.stop()
-        intakeState = 0
+        conveyorGroup.stop()
+        conveyorState = 0
 
 filterState = 0
 
