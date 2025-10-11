@@ -28,8 +28,8 @@ filterMotor.set_velocity(100, PERCENT)
 conveyorGroup = MotorGroup(Motor(Ports.PORT14), Motor(Ports.PORT15))
 conveyorGroup.set_velocity(80, PERCENT)
 
-MODE_RED = 0
-MODE_BLUE = 1
+doorPiston = DigitalOut(brain.three_wire_port.a)
+scraperPiston = DigitalOut(brain.three_wire_port.b)
 
 inertial = Inertial(Ports.PORT20)
 drivetrain = SmartDrive(
@@ -42,6 +42,10 @@ drivetrain = SmartDrive(
     DistanceUnits.MM,
     4/3
 )
+
+
+MODE_RED = 0
+MODE_BLUE = 1
 
 def dampPercent(percent):
     return 10 * math.sqrt(percent)
@@ -68,7 +72,7 @@ def rightStickChanged():
 
 conveyorState = 0
 
-def buttonL1Down():
+def conveyorForward():
     global conveyorState
 
     if conveyorState != 1:
@@ -78,7 +82,7 @@ def buttonL1Down():
         conveyorGroup.stop()
         conveyorState = 0
     
-def buttonL2Down():
+def conveyorBackward():
     global conveyorState
 
     if conveyorState != 2:
@@ -90,7 +94,7 @@ def buttonL2Down():
 
 filterState = 0
 
-def buttonR1Down():
+def filterForward():
     global filterState
 
     if filterState != 1:
@@ -100,7 +104,7 @@ def buttonR1Down():
         filterMotor.stop()
         filterState = 0
 
-def buttonR2Down():
+def filterBackward():
     global filterState
 
     if filterState != 2:
@@ -109,6 +113,12 @@ def buttonR2Down():
     else:
         filterMotor.stop()
         filterState = 0
+    
+def toggleDoor():
+    doorPiston.set(1 - doorPiston.value())
+
+def toggleScraper():
+    scraperPiston.set(1 - scraperPiston.value())
 
 def autonomous():
     brain.screen.clear_screen()
@@ -124,12 +134,14 @@ def user_control():
     controller.axis3.changed(leftStickChanged)
     controller.axis2.changed(rightStickChanged)
     
-    controller.buttonL1.pressed(buttonL1Down)
-    controller.buttonL2.pressed(buttonL2Down)
+    controller.buttonL1.pressed(conveyorForward)
+    controller.buttonL2.pressed(conveyorBackward)
 
-    controller.buttonR1.pressed(buttonR1Down)
-    controller.buttonR2.pressed(buttonR2Down)
+    controller.buttonR1.pressed(filterForward)
+    controller.buttonR2.pressed(filterBackward)
     
+    controller.buttonB.pressed(toggleScraper)
+    controller.buttonX.pressed(toggleDoor)
 
 # create competition instance
 comp = Competition(user_control, autonomous)
