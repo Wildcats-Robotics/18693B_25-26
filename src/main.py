@@ -13,25 +13,25 @@ from vex import *
 brain = Brain()
 controller = Controller()
 
-motorL1 = Motor(Ports.PORT1, True)
-motorL2 = Motor(Ports.PORT2, True)
-motorR1 = Motor(Ports.PORT10, False)
-motorR2 = Motor(Ports.PORT9, False)
+motorL1 = Motor(Ports.PORT14, True)
+motorL2 = Motor(Ports.PORT13, True)
+motorR1 = Motor(Ports.PORT12, False)
+motorR2 = Motor(Ports.PORT11, False)
 
 vision__RED_BALL = Signature(1, 10333, 15491, 12912,-1401, -947, -1174,3.9, 0)
 vision__BLUE_BALL = Signature(2, -4779, -4069, -4424,6677, 7949, 7313,7, 0)
-vision = Vision(Ports.PORT12, 50, vision__RED_BALL, vision__BLUE_BALL)
+vision = Vision(Ports.PORT20, 50, vision__RED_BALL, vision__BLUE_BALL)
 
-filterMotor = Motor(Ports.PORT13, True)
+filterMotor = Motor(Ports.PORT3, True)
 filterMotor.set_velocity(100, PERCENT)
 
-conveyorGroup = MotorGroup(Motor(Ports.PORT14), Motor(Ports.PORT15))
+conveyorGroup = MotorGroup(Motor(Ports.PORT1), Motor(Ports.PORT2))
 conveyorGroup.set_velocity(80, PERCENT)
 
 doorPiston = DigitalOut(brain.three_wire_port.a)
 scraperPiston = DigitalOut(brain.three_wire_port.b)
 
-inertial = Inertial(Ports.PORT20)
+inertial = Inertial(Ports.PORT19)
 drivetrain = SmartDrive(
     MotorGroup(motorL1, motorL2),
     MotorGroup(motorR1, motorR2),
@@ -48,7 +48,7 @@ MODE_RED = 0
 MODE_BLUE = 1
 
 def dampPercent(percent):
-    return 10 * math.sqrt(percent)
+    return 10 * math.sqrt(abs(percent)) * percent / abs(percent)
 
 def leftStickChanged():
     vel = dampPercent(controller.axis3.position())
@@ -58,7 +58,9 @@ def leftStickChanged():
     motorL1.spin(FORWARD)
     motorL2.spin(FORWARD)
 
-    print("Left torque: " + str(motorL1.torque()) + " NM")
+    print("Left stick percent: " + str(controller.axis3.position()) + "%")
+
+    #print("Left torque: " + str(motorL1.torque()) + " NM")
 
 def rightStickChanged():
     vel = dampPercent(controller.axis2.position())
@@ -68,7 +70,9 @@ def rightStickChanged():
     motorR1.spin(FORWARD)
     motorR2.spin(FORWARD)
 
-    print("Right torque: " + str(motorR1.torque()) + " NM")
+    print("Right stick percent: " + str(controller.axis2.position()) + "%")
+
+    #print("Right torque: " + str(motorR1.torque()) + " NM")
 
 conveyorState = 0
 
