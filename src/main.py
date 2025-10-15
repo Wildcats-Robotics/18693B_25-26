@@ -25,7 +25,7 @@ vision = Vision(Ports.PORT20, 50, vision__RED_BALL, vision__BLUE_BALL)
 filterMotor = Motor(Ports.PORT3, True)
 filterMotor.set_velocity(100, PERCENT)
 
-conveyorGroup = MotorGroup(Motor(Ports.PORT1), Motor(Ports.PORT2))
+conveyorGroup = MotorGroup(Motor(Ports.PORT1, True), Motor(Ports.PORT2, True))
 conveyorGroup.set_velocity(80, PERCENT)
 
 doorPiston = DigitalOut(brain.three_wire_port.a)
