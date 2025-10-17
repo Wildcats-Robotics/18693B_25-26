@@ -18,6 +18,9 @@ motorL2 = Motor(Ports.PORT13, True)
 motorR1 = Motor(Ports.PORT12, False)
 motorR2 = Motor(Ports.PORT11, False)
 
+left_dt = MotorGroup(motorL1, motorL2)
+right_dt = MotorGroup(motorR1, motorR2)
+
 vision__RED_BALL = Signature(1, 10333, 15491, 12912,-1401, -947, -1174,3.9, 0)
 vision__BLUE_BALL = Signature(2, -4779, -4069, -4424,6677, 7949, 7313,7, 0)
 vision = Vision(Ports.PORT20, 50, vision__RED_BALL, vision__BLUE_BALL)
@@ -33,8 +36,8 @@ scraperPiston = DigitalOut(brain.three_wire_port.b)
 
 inertial = Inertial(Ports.PORT19)
 drivetrain = SmartDrive(
-    MotorGroup(motorL1, motorL2),
-    MotorGroup(motorR1, motorR2),
+    left_dt,
+    right_dt,
     inertial,
     220,
     307.975,
@@ -48,15 +51,19 @@ MODE_RED = 0
 MODE_BLUE = 1
 
 def dampPercent(percent):
+    if percent >= 95: return 100
+    if percent <= -95: return -100
+    
     return 10 * math.sqrt(abs(percent)) * percent / abs(percent)
 
 def leftStickChanged():
     vel = dampPercent(controller.axis3.position())
-    motorL1.set_velocity(vel, PERCENT)
-    motorL2.set_velocity(vel, PERCENT)
-    
-    motorL1.spin(FORWARD)
-    motorL2.spin(FORWARD)
+
+    left_dt.set_velocity(vel, PERCENT)
+    if vel > 0:
+        left_dt.spin(FORWARD)
+    else:
+        left_dt.stop()
 
     print("Left stick percent: " + str(controller.axis3.position()) + "%")
 
@@ -64,11 +71,12 @@ def leftStickChanged():
 
 def rightStickChanged():
     vel = dampPercent(controller.axis2.position())
-    motorR1.set_velocity(vel, PERCENT)
-    motorR2.set_velocity(vel, PERCENT)
-
-    motorR1.spin(FORWARD)
-    motorR2.spin(FORWARD)
+    
+    right_dt.set_velocity(vel, PERCENT)
+    if vel > 0:
+        right_dt.spin(FORWARD)
+    else:
+        right_dt.stop()
 
     print("Right stick percent: " + str(controller.axis2.position()) + "%")
 
