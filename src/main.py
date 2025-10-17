@@ -35,6 +35,7 @@ doorPiston = DigitalOut(brain.three_wire_port.a)
 scraperPiston = DigitalOut(brain.three_wire_port.b)
 
 inertial = Inertial(Ports.PORT19)
+"""
 drivetrain = SmartDrive(
     left_dt,
     right_dt,
@@ -45,6 +46,7 @@ drivetrain = SmartDrive(
     DistanceUnits.MM,
     4/3
 )
+"""
 
 
 MODE_RED = 0
@@ -53,7 +55,7 @@ MODE_BLUE = 1
 def dampPercent(percent):
     if percent >= 95: return 100
     if percent <= -95: return -100
-    
+
     return 10 * math.sqrt(abs(percent)) * percent / abs(percent)
 
 def leftStickChanged():
