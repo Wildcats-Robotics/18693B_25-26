@@ -28,14 +28,16 @@ vision = Vision(Ports.PORT20, 50, vision__RED_BALL, vision__BLUE_BALL)
 filterMotor = Motor(Ports.PORT3, True)
 filterMotor.set_velocity(100, PERCENT)
 
-conveyorGroup = MotorGroup(Motor(Ports.PORT1, True), Motor(Ports.PORT2, True))
+conveyorMotor1 = Motor(Ports.PORT1, True)
+conveyorMotor2 = Motor(Ports.PORT2, True)
+
+conveyorGroup = MotorGroup(conveyorMotor1, conveyorMotor2)
 conveyorGroup.set_velocity(80, PERCENT)
 
 doorPiston = DigitalOut(brain.three_wire_port.a)
 scraperPiston = DigitalOut(brain.three_wire_port.b)
 
-inertial = Inertial(Ports.PORT19)
-"""
+inertial = Inertial(Ports.PORT10)
 drivetrain = SmartDrive(
     left_dt,
     right_dt,
@@ -46,26 +48,34 @@ drivetrain = SmartDrive(
     DistanceUnits.MM,
     4/3
 )
-"""
 
+motorList = [
+    (motorL1, "Left DT Motor 1"),
+    (motorL2, "Left DT Motor 2"),
+    (motorR1, "Right DT Motor 1"),
+    (motorR2, "Right DT Motor 2"),
+    (filterMotor, "Filter Motor"),
+    (conveyorMotor1, "Conveyor Motor 1"),
+    (conveyorMotor2, "Conveyor Motor 2")
+]
+
+overheatingMotors = set()
 
 MODE_RED = 0
 MODE_BLUE = 1
 
 def dampPercent(percent):
+    if -5 <= percent and percent <= 5: return 0
     if percent >= 95: return 100
     if percent <= -95: return -100
 
-    return 10 * math.sqrt(abs(percent)) * percent / abs(percent)
+    return (percent * percent / 100) * (percent / abs(percent))
 
 def leftStickChanged():
     vel = dampPercent(controller.axis3.position())
 
     left_dt.set_velocity(vel, PERCENT)
-    if vel > 0:
-        left_dt.spin(FORWARD)
-    else:
-        left_dt.stop()
+    left_dt.spin(FORWARD)
 
     print("Left stick percent: " + str(controller.axis3.position()) + "%")
 
@@ -75,10 +85,7 @@ def rightStickChanged():
     vel = dampPercent(controller.axis2.position())
     
     right_dt.set_velocity(vel, PERCENT)
-    if vel > 0:
-        right_dt.spin(FORWARD)
-    else:
-        right_dt.stop()
+    right_dt.spin(FORWARD)
 
     print("Right stick percent: " + str(controller.axis2.position()) + "%")
 
@@ -112,6 +119,7 @@ def filterForward():
     global filterState
 
     if filterState != 1:
+        filterMotor.set_velocity(75, PERCENT)
         filterMotor.spin(FORWARD)
         filterState = 1
     else:
@@ -122,6 +130,7 @@ def filterBackward():
     global filterState
 
     if filterState != 2:
+        filterMotor.set_velocity(100, PERCENT)
         filterMotor.spin(REVERSE)
         filterState = 2
     else:
@@ -133,6 +142,15 @@ def toggleDoor():
 
 def toggleScraper():
     scraperPiston.set(1 - scraperPiston.value())
+
+def checkOverheating():
+    for motor, name in motorList:
+        if motor not in overheatingMotors and motor.temperature() > 55:
+            controller.screen.print(name + " is overheating")
+            controller.rumble("..")
+            overheatingMotors.add(motor)
+        elif motor in overheatingMotors and motor.temperature() < 52:
+            overheatingMotors.remove(motor)
 
 def autonomous():
     brain.screen.clear_screen()
@@ -156,6 +174,10 @@ def user_control():
     
     controller.buttonB.pressed(toggleScraper)
     controller.buttonX.pressed(toggleDoor)
+
+    while True:
+        checkOverheating()
+        wait(50)
 
 # create competition instance
 comp = Competition(user_control, autonomous)
