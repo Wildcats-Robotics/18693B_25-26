@@ -98,6 +98,7 @@ def conveyorForward():
     global conveyorState
 
     if conveyorState != 1:
+        conveyorGroup.set_velocity(100, PERCENT)
         conveyorGroup.spin(FORWARD)
         conveyorState = 1
     else:
@@ -108,6 +109,7 @@ def conveyorBackward():
     global conveyorState
 
     if conveyorState != 2:
+        conveyorGroup.set_velocity(70, PERCENT)
         conveyorGroup.spin(REVERSE)
         conveyorState = 2
     else:
@@ -120,7 +122,7 @@ def filterForward():
     global filterState
 
     if filterState != 1:
-        filterMotor.set_velocity(75, PERCENT)
+        filterMotor.set_velocity(50, PERCENT)
         filterMotor.spin(FORWARD)
         filterState = 1
     else:
@@ -159,7 +161,24 @@ def checkOverheating():
 def autonomous():
     brain.screen.clear_screen()
     brain.screen.print("autonomous code")
-    # place automonous code here
+    
+    drivetrain.drive_for(FORWARD, 12, INCHES, wait=True)
+    drivetrain.turn_for(RIGHT, 90, DEGREES, wait=True)
+
+    # Take those 3 balls
+    conveyorForward()
+    drivetrain.drive_for(FORWARD, 36, INCHES, wait=True)
+    conveyorForward()
+
+    drivetrain.turn_for(RIGHT, 45, DEGREES)
+    drivetrain.drive_for(FORWARD, 22, INCHES)
+
+    # Drop into middle goal
+    conveyorForward()
+    filterBackward()
+    wait(5, SECONDS)
+    conveyorForward()
+    filterBackward()
 
 def user_control():
     brain.screen.clear_screen()
