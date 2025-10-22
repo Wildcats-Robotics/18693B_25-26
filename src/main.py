@@ -36,6 +36,7 @@ conveyorGroup.set_velocity(80, PERCENT)
 
 doorPiston = DigitalOut(brain.three_wire_port.a)
 scraperPiston = DigitalOut(brain.three_wire_port.b)
+hookPiston = DigitalOut(brain.three_wire_port.c)
 
 inertial = Inertial(Ports.PORT10)
 drivetrain = SmartDrive(
@@ -143,6 +144,9 @@ def toggleDoor():
 def toggleScraper():
     scraperPiston.set(1 - scraperPiston.value())
 
+def toggleHook():
+    hookPiston.set(1 - hookPiston.value())
+
 def checkOverheating():
     for motor, name in motorList:
         if motor not in overheatingMotors and motor.temperature() > 55:
@@ -174,6 +178,7 @@ def user_control():
     
     controller.buttonB.pressed(toggleScraper)
     controller.buttonX.pressed(toggleDoor)
+    controller.buttonY.pressed(toggleHook)
 
     while True:
         checkOverheating()
