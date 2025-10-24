@@ -70,7 +70,8 @@ def dampPercent(percent):
     if percent >= 95: return 100
     if percent <= -95: return -100
 
-    return (percent * percent / 100) * (percent / abs(percent))
+    #return (percent * percent / 100) * (percent / abs(percent))
+    return percent
 
 def leftStickChanged():
     vel = dampPercent(controller.axis3.position())
@@ -78,8 +79,7 @@ def leftStickChanged():
     left_dt.set_velocity(vel, PERCENT)
     left_dt.spin(FORWARD)
 
-    print("Left stick percent: " + str(controller.axis3.position()) + "%")
-
+    #print("Left stick percent: " + str(controller.axis3.position()) + "%")
     #print("Left torque: " + str(motorL1.torque()) + " NM")
 
 def rightStickChanged():
@@ -88,8 +88,7 @@ def rightStickChanged():
     right_dt.set_velocity(vel, PERCENT)
     right_dt.spin(FORWARD)
 
-    print("Right stick percent: " + str(controller.axis2.position()) + "%")
-
+    #print("Right stick percent: " + str(controller.axis2.position()) + "%")
     #print("Right torque: " + str(motorR1.torque()) + " NM")
 
 conveyorState = 0
@@ -162,12 +161,12 @@ def autonomous():
     brain.screen.clear_screen()
     brain.screen.print("autonomous code")
     
-    drivetrain.drive_for(FORWARD, 12, INCHES, wait=True)
-    drivetrain.turn_for(RIGHT, 90, DEGREES, wait=True)
+    drivetrain.drive_for(FORWARD, 12, INCHES)
+    drivetrain.turn_for(RIGHT, 90, DEGREES)
 
     # Take those 3 balls
     conveyorForward()
-    drivetrain.drive_for(FORWARD, 36, INCHES, wait=True)
+    drivetrain.drive_for(FORWARD, 36, INCHES)
     conveyorForward()
 
     drivetrain.turn_for(RIGHT, 45, DEGREES)
