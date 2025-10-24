@@ -169,8 +169,8 @@ def autonomous():
     drivetrain.drive_for(FORWARD, 36, INCHES)
     conveyorForward()
 
-    drivetrain.turn_for(RIGHT, 45, DEGREES)
-    drivetrain.drive_for(FORWARD, 22, INCHES)
+    drivetrain.turn_for(LEFT, 135, DEGREES)
+    drivetrain.drive_for(REVERSE, 22, INCHES)
 
     # Drop into middle goal
     conveyorForward()
