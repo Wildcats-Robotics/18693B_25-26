@@ -73,23 +73,15 @@ def dampPercent(percent):
     #return (percent * percent / 100) * (percent / abs(percent))
     return percent
 
-def leftStickChanged():
-    vel = dampPercent(controller.axis3.position())
+def updateDT():
+    speed = dampPercent(controller.axis3.position())
+    turning = controller.axis2.position()
 
-    left_dt.set_velocity(vel, PERCENT)
+    left_dt.set_velocity(speed + turning)
+    right_dt.set_velocity(speed - turning)
+
     left_dt.spin(FORWARD)
-
-    #print("Left stick percent: " + str(controller.axis3.position()) + "%")
-    #print("Left torque: " + str(motorL1.torque()) + " NM")
-
-def rightStickChanged():
-    vel = dampPercent(controller.axis2.position())
-    
-    right_dt.set_velocity(vel, PERCENT)
     right_dt.spin(FORWARD)
-
-    #print("Right stick percent: " + str(controller.axis2.position()) + "%")
-    #print("Right torque: " + str(motorR1.torque()) + " NM")
 
 conveyorState = 0
 
@@ -185,8 +177,8 @@ def user_control():
 
     # place driver control in this while loop
 
-    controller.axis3.changed(leftStickChanged)
-    controller.axis2.changed(rightStickChanged)
+    controller.axis3.changed(updateDT)
+    controller.axis2.changed(updateDT)
     
     controller.buttonL1.pressed(conveyorForward)
     controller.buttonL2.pressed(conveyorBackward)
