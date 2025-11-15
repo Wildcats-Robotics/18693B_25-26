@@ -83,6 +83,9 @@ def clamp(val, min_val, max_val):
     return max(min_val, min(max_val, val))
 
 """
+    Tank drive stuff (mainly for testing)
+"""
+
 def leftStickChanged():
     vel = dampPercent(controller.axis3.position())
 
@@ -100,15 +103,18 @@ def rightStickChanged():
 
     #print("Right stick percent: " + str(controller.axis2.position()) + "%")
     #print("Right torque: " + str(motorR1.torque()) + " NM")
+
+"""
+    PID for driver control
 """
 
 lat_kP = 0.6 # Reduce if oscillating
 lat_kI = 0.0 # Make non-zero if there is steady-state error
-lat_kD = 0.06 # Increase if overshoots too much
+lat_kD = 0.08 # Increase if overshoots too much
 
-turn_kP = 0.8
+turn_kP = 0.3
 turn_kI = 0.0
-turn_kD = 0.06
+turn_kD = 0.0
 
 vel_prev_error = 0
 vel_error_sum = 0
@@ -166,30 +172,20 @@ def updateDT(dt=0.015):
     base = dampPercent(controller.axis3.position())
     turn = dampPercent(controller.axis2.position())
 
-    base_vel = 0
+    base_vel = base
     turn_vel = 0
 
-    if (base == 0):
-        vel_error_sum = 0
-    else:
-        average_vel = (left_dt.velocity(PERCENT) + right_dt.velocity(PERCENT)) / 2
-
-        vel_error = base - average_vel
-        vel_error_deriv = (vel_error - vel_prev_error) / dt
-        vel_error_sum += vel_error * dt
-
-        base_vel = lat_kP * vel_error + lat_kI * vel_error_sum + lat_kD * vel_error_deriv
-        vel_prev_error = vel_error
-
     if (turn == 0):
-        turn_error_sum = 0
+        turn_error = turn - heading_velocity()
+        turn_error_deriv = (turn_error - turn_prev_error) / dt
+        turn_error_sum += turn_error * dt
 
-    turn_error = turn - heading_velocity()
-    turn_error_deriv = (turn_error - turn_prev_error) / dt
-    turn_error_sum += turn_error * dt
+        turn_vel = turn_kP * turn_error + turn_kI * turn_error_sum + turn_kD * turn_error_deriv
+        turn_prev_error = turn_error
 
-    turn_vel = turn_kP * turn_error + turn_kI * turn_error_sum + turn_kD * turn_error_deriv
-    turn_prev_error = turn_error
+        # When steady state is reached with minimal error
+        if (turn_error <= 1 and turn_error_deriv <= 1):
+            turn_error_sum = 0
 
     left_vel = clamp(base_vel + turn_vel, -100, 100)
     right_vel = clamp(base_vel - turn_vel, -100, 100)
@@ -461,8 +457,8 @@ def user_control():
     brain.screen.clear_screen()
     brain.screen.print("driver control")
 
-    #controller.axis3.changed(leftStickChanged)
-    #controller.axis2.changed(rightStickChanged)
+    controller.axis3.changed(leftStickChanged)
+    controller.axis2.changed(rightStickChanged)
     
     controller.buttonL1.pressed(conveyorForward)
     controller.buttonL2.pressed(conveyorBackward)
@@ -476,7 +472,7 @@ def user_control():
 
     while True:
         checkOverheating()
-        updateDT()
+        #updateDT()
         wait(15, MSEC)
 
 # create competition instance
